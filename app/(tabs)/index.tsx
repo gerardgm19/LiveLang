@@ -1,5 +1,9 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { LanguageTitleCard } from "@/components/LanguageTitleCard";
+import { palette } from "@/constants/theme";
 import { getPhrases, playPhraseAudio } from "@/services/phraseService";
 import type { PhraseItem } from "@/types/phrase";
 
@@ -11,7 +15,7 @@ function PhraseRow({ item }: { item: PhraseItem }) {
       <View style={styles.rowContent}>
         <Text style={styles.word}>{item.text}</Text>
         <Text style={styles.translation}>{item.translation}</Text>
-        <Text style={styles.phonetics}>{item.phonetics}</Text>
+        <Text style={styles.phonetics}>/{item.phonetics}/</Text>
       </View>
       <Pressable
         accessibilityRole="button"
@@ -19,16 +23,27 @@ function PhraseRow({ item }: { item: PhraseItem }) {
         onPress={() => playPhraseAudio(item)}
         style={styles.playButton}
       >
-        <Text style={styles.playButtonText}>Play</Text>
+        <Ionicons name="volume-high" size={20} color={palette.white} />
       </Pressable>
     </View>
   );
 }
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+  const topPadding = Math.max(insets.top, 12);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>English to Spanish</Text>
+    <View style={[styles.container, { paddingTop: topPadding }]}>
+      <LanguageTitleCard
+        title="Learn fast"
+        subtitle="Tiny lessons, big progress."
+        leftFlagUri="https://flagcdn.com/w160/gb.png"
+        rightFlagUri="https://flagcdn.com/w160/es.png"
+      />
+
+      <Text style={styles.sectionTitle}>English to Spanish</Text>
+
       <FlatList
         data={phrases}
         keyExtractor={(item) => item.id}
@@ -44,56 +59,57 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 20,
-    backgroundColor: "#fff",
+    backgroundColor: palette.backgroundTop,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 12,
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: palette.text,
+    marginBottom: 10,
   },
   listContent: {
     gap: 12,
+    paddingBottom: 20,
   },
   row: {
-    borderWidth: 1,
-    borderColor: "#d9d9d9",
-    borderRadius: 10,
-    padding: 12,
+    borderWidth: 2,
+    borderColor: palette.border,
+    borderRadius: 18,
+    padding: 14,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     gap: 12,
+    backgroundColor: palette.white,
   },
   rowContent: {
     flex: 1,
     gap: 4,
   },
   word: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "800",
+    color: palette.text,
   },
   translation: {
     fontSize: 16,
-    color: "#1f1f1f",
+    color: palette.green,
+    fontWeight: "700",
   },
   phonetics: {
     fontSize: 14,
-    color: "#666",
+    color: palette.textSoft,
+    fontWeight: "600",
   },
   playButton: {
-    backgroundColor: "#111",
-    paddingVertical: 8,
+    backgroundColor: palette.green,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  playButtonText: {
-    color: "#fff",
-    fontWeight: "600",
+    borderRadius: 12,
   },
   empty: {
     fontSize: 16,
-    color: "#666",
+    color: palette.textSoft,
     marginTop: 20,
   },
 });
