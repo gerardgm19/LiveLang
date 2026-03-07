@@ -65,7 +65,7 @@ export default function LiveLangsScreen() {
   const topPadding = Math.max(insets.top, 12);
 
   const handleSelectLanguage = (language: LanguageItem) => {
-    router.push({ pathname: "/", params: { lang: language.code.toLowerCase() } });
+    router.navigate({ pathname: "/(tabs)", params: { lang: language.code.toLowerCase() } });
   };
 
   return (
@@ -164,3 +164,5 @@ const styles = StyleSheet.create({
     color: palette.white,
   },
 });
+
+
