@@ -31,18 +31,18 @@ function PhraseRow({ item }: { item: PhraseItem }) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const topPadding = Math.max(insets.top, 12);
+  const topPadding = Math.max(insets.top, 14);
 
   return (
     <View style={[styles.container, { paddingTop: topPadding }]}>
       <LanguageTitleCard
-        title="Learn fast"
-        subtitle="Tiny lessons, big progress."
+        title="LiveLang"
+        subtitle="English to Spnnish"
         leftFlagUri="https://flagcdn.com/w160/gb.png"
         rightFlagUri="https://flagcdn.com/w160/es.png"
       />
 
-      <Text style={styles.sectionTitle}>English to Spanish</Text>
+      <Text style={styles.sectionTitle}>Your expressions</Text>
 
       <FlatList
         data={phrases}
