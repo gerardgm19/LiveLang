@@ -37,6 +37,56 @@ Assume the following unless the repository clearly shows otherwise:
 
 ---
 
+## Current app purpose
+
+LiveLang is a beginner-friendly language learning app prototype.
+
+Current product behavior:
+- users can browse languages in `LiveLangs`
+- users can tap a language card to navigate to `Home`
+- `Home` shows phrase/expression cards for the selected target language
+- each phrase includes translation, phonetics, and target-language pronunciation audio
+
+The current implementation is data-seeded (hardcoded services) and optimized for iterative feature development.
+
+---
+
+## Current architecture
+
+Use this as the source of truth for existing structure:
+
+- Routing (Expo Router):
+  - `app/_layout.tsx`: app root stack + safe area provider
+  - `app/(tabs)/_layout.tsx`: tab navigator shell
+  - `app/(tabs)/index.tsx`: Home phrases screen
+  - `app/(tabs)/livelangs.tsx`: language catalog selection screen
+  - `app/(tabs)/profile.tsx`: profile/progress screen
+
+- UI layer:
+  - `components/LanguageTitleCard.tsx`: Home hero/title card with paired language flags
+  - `components/FriendlyMascot.tsx`: reusable animated mascot element
+  - `constants/theme.ts`: shared design tokens/palette
+
+- Domain/services layer:
+  - `services/languageCatalogService.ts`: language catalog + sections + language lookup
+  - `services/phraseService.ts`: phrase dataset + filtering + TTS playback helper
+
+- Shared types:
+  - `types/language.ts`: language models
+  - `types/phrase.ts`: phrase and audio models
+
+- State/navigation contract:
+  - selected language is passed via route params (`lang`) from `LiveLangs` to `Home`
+  - `Home` derives phrase list from services using `targetLanguage` + `userLanguage`
+
+Architectural intent:
+- keep route files focused on screen composition
+- keep business/data logic in `services/`
+- keep reusable models in `types/`
+- keep visual primitives and tokens reusable across screens
+
+---
+
 ## How to work
 
 Before making changes:

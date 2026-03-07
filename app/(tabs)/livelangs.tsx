@@ -1,44 +1,89 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { FriendlyMascot } from "@/components/FriendlyMascot";
 import { palette } from "@/constants/theme";
+import { getLanguageSections } from "@/services/languageCatalogService";
+import type { LanguageItem } from "@/types/language";
 
-const goals = [
-  { id: "g1", label: "Starter words", done: true },
-  { id: "g2", label: "Daily phrase", done: true },
-  { id: "g3", label: "Pronunciation", done: false },
-];
+const { yourLanguages, availableLanguages } = getLanguageSections();
+
+function LanguageCard({
+  item,
+  highlighted,
+  onPress,
+}: {
+  item: LanguageItem;
+  highlighted?: boolean;
+  onPress: (language: LanguageItem) => void;
+}) {
+  return (
+    <Pressable
+      onPress={() => onPress(item)}
+      style={({ pressed }) => [
+        styles.card,
+        highlighted ? styles.cardHighlighted : null,
+        pressed ? styles.cardPressed : null,
+      ]}
+    >
+      <View style={[styles.codeBadge, highlighted ? styles.codeBadgeHighlighted : null]}>
+        <Text style={[styles.codeText, highlighted ? styles.codeTextHighlighted : null]}>{item.code}</Text>
+      </View>
+      <Text style={[styles.cardTitle, highlighted ? styles.cardTitleHighlighted : null]}>{item.name}</Text>
+    </Pressable>
+  );
+}
+
+function LanguageGrid({
+  title,
+  languages,
+  highlighted,
+  onSelect,
+}: {
+  title: string;
+  languages: LanguageItem[];
+  highlighted?: boolean;
+  onSelect: (language: LanguageItem) => void;
+}) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.grid}>
+        {languages.map((language) => (
+          <View key={language.id} style={styles.gridItem}>
+            <LanguageCard item={language} highlighted={highlighted} onPress={onSelect} />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function LiveLangsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const topPadding = Math.max(insets.top, 12);
+
+  const handleSelectLanguage = (language: LanguageItem) => {
+    router.push({ pathname: "/", params: { lang: language.code.toLowerCase() } });
+  };
 
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingTop: topPadding }]}
     >
-      <View style={styles.heroCard}>
-        <FriendlyMascot size={84} />
-        <Text style={styles.title}>LiveLangs Mission</Text>
-        <Text style={styles.subtitle}>Learn with short, fun sessions and keep your streak alive.</Text>
-      </View>
-
-      <View style={styles.goalCard}>
-        <Text style={styles.sectionTitle}>Today checklist</Text>
-        {goals.map((goal) => (
-          <View key={goal.id} style={styles.goalRow}>
-            <Ionicons
-              name={goal.done ? "checkmark-circle" : "ellipse-outline"}
-              size={28}
-              color={goal.done ? palette.green : palette.textSoft}
-            />
-            <Text style={styles.goalText}>{goal.label}</Text>
-          </View>
-        ))}
-      </View>
+      <LanguageGrid
+        title="Your Languages"
+        languages={yourLanguages}
+        highlighted
+        onSelect={handleSelectLanguage}
+      />
+      <LanguageGrid
+        title="Available languages"
+        languages={availableLanguages}
+        onSelect={handleSelectLanguage}
+      />
     </ScrollView>
   );
 }
@@ -51,47 +96,71 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 14,
+    gap: 16,
   },
-  heroCard: {
-    backgroundColor: palette.yellow,
-    borderRadius: 24,
-    padding: 18,
-    alignItems: "center",
-    gap: 10,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: palette.text,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: palette.text,
-    textAlign: "center",
-  },
-  goalCard: {
+  section: {
     backgroundColor: palette.white,
     borderRadius: 22,
-    padding: 16,
-    gap: 10,
     borderWidth: 2,
     borderColor: palette.border,
+    padding: 14,
+    gap: 12,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
     color: palette.text,
   },
-  goalRow: {
+  grid: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    flexWrap: "wrap",
+    marginHorizontal: -5,
+    rowGap: 10,
+  },
+  gridItem: {
+    width: "50%",
+    paddingHorizontal: 5,
+  },
+  card: {
+    minHeight: 98,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: palette.border,
+    backgroundColor: palette.backgroundTop,
+    padding: 12,
+    justifyContent: "space-between",
+  },
+  cardHighlighted: {
+    backgroundColor: palette.green,
+    borderColor: palette.green,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
+  },
+  codeBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: palette.blue,
+    borderRadius: 99,
+    paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  goalText: {
-    fontSize: 16,
-    fontWeight: "600",
+  codeBadgeHighlighted: {
+    backgroundColor: palette.white,
+  },
+  codeText: {
+    color: palette.white,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  codeTextHighlighted: {
+    color: palette.green,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "800",
     color: palette.text,
+  },
+  cardTitleHighlighted: {
+    color: palette.white,
   },
 });

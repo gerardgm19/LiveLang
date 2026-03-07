@@ -1,13 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useLocalSearchParams } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageTitleCard } from "@/components/LanguageTitleCard";
 import { palette } from "@/constants/theme";
+import { getLanguageByCode } from "@/services/languageCatalogService";
 import { getPhrases, playPhraseAudio } from "@/services/phraseService";
 import type { PhraseItem } from "@/types/phrase";
-
-const phrases = getPhrases({ targetLanguage: "en", userLanguage: "es" });
 
 function PhraseRow({ item }: { item: PhraseItem }) {
   return (
@@ -31,14 +31,19 @@ function PhraseRow({ item }: { item: PhraseItem }) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ lang?: string }>();
   const topPadding = Math.max(insets.top, 14);
+
+  const selectedLanguageCode = (params.lang ?? "en").toLowerCase();
+  const selectedLanguage = getLanguageByCode(selectedLanguageCode) ?? getLanguageByCode("en");
+  const phrases = getPhrases({ targetLanguage: selectedLanguageCode, userLanguage: "es" });
 
   return (
     <View style={[styles.container, { paddingTop: topPadding }]}>
       <LanguageTitleCard
         title="LiveLang"
-        subtitle="English to Spnnish"
-        leftFlagUri="https://flagcdn.com/w160/gb.png"
+        subtitle={`${selectedLanguage?.name ?? "English"} to Spanish`}
+        leftFlagUri={selectedLanguage?.flagUri ?? "https://flagcdn.com/w160/gb.png"}
         rightFlagUri="https://flagcdn.com/w160/es.png"
       />
 
@@ -48,7 +53,7 @@ export default function HomeScreen() {
         data={phrases}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PhraseRow item={item} />}
-        ListEmptyComponent={<Text style={styles.empty}>No phrases found.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No phrases found for this language yet.</Text>}
         contentContainerStyle={styles.listContent}
       />
     </View>
