@@ -1,13 +1,15 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageTitleCard } from "@/components/LanguageTitleCard";
 import { palette } from "@/constants/theme";
 import { getLanguageByCode } from "@/services/languageCatalogService";
-import { getPhrases, playPhraseAudio } from "@/services/phraseService";
+import { playPhraseAudio } from "@/services/phraseService";
+import { useShallow } from "zustand/react/shallow";
+
+import { usePhraseStore } from "@/stores/phraseStore";
 import type { PhraseItem } from "@/types/phrase";
 
 function PhraseRow({ item }: { item: PhraseItem }) {
@@ -39,14 +41,12 @@ export default function HomeScreen() {
   const selectedLanguageCode = (params.lang ?? "en").toLowerCase();
   const selectedLanguage = getLanguageByCode(selectedLanguageCode) ?? getLanguageByCode("en");
 
-  const [phrases, setPhrases] = useState<PhraseItem[]>(() =>
-    getPhrases({ targetLanguage: selectedLanguageCode, userLanguage: "es" }),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      setPhrases(getPhrases({ targetLanguage: selectedLanguageCode, userLanguage: "es" }));
-    }, [selectedLanguageCode]),
+  const phrases = usePhraseStore(
+    useShallow((s) =>
+      s.phrases.filter(
+        (p) => p.targetLanguage === selectedLanguageCode && p.userLanguage === "es",
+      ),
+    ),
   );
 
   return (

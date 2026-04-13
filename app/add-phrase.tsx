@@ -1,6 +1,9 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Speech from "expo-speech";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,7 +16,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { palette } from "@/constants/theme";
-import { addPhrase, getLocaleForLanguage } from "@/services/phraseService";
+import { getLocaleForLanguage } from "@/services/phraseService";
+import { fetchWiktionaryPhonetics } from "@/services/wiktionaryService";
+import { usePhraseStore } from "@/stores/phraseStore";
 
 type FormErrors = {
   text?: string;
@@ -30,6 +35,7 @@ function Field({
   placeholder,
   error,
   autoCapitalize,
+  rightAction,
 }: {
   label: string;
   value: string;
@@ -37,18 +43,22 @@ function Field({
   placeholder?: string;
   error?: string;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  rightAction?: React.ReactNode;
 }) {
   return (
     <View style={styles.fieldWrapper}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[styles.input, !!error && styles.inputError]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={palette.textSoft}
-        autoCapitalize={autoCapitalize ?? "sentences"}
-      />
+      <View style={styles.inputRow}>
+        <TextInput
+          style={[styles.input, styles.inputFlex, !!error && styles.inputError]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={palette.textSoft}
+          autoCapitalize={autoCapitalize ?? "sentences"}
+        />
+        {rightAction}
+      </View>
       {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
@@ -58,6 +68,7 @@ export default function AddPhraseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ lang?: string }>();
+  const addPhrase = usePhraseStore((s) => s.addPhrase);
 
   const [text, setText] = useState("");
   const [translation, setTranslation] = useState("");
@@ -65,6 +76,31 @@ export default function AddPhraseScreen() {
   const [targetLanguage, setTargetLanguage] = useState(params.lang ?? "en");
   const [userLanguage, setUserLanguage] = useState("es");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [fetchingPhonetics, setFetchingPhonetics] = useState(false);
+  const [phoneticsError, setPhoneticsError] = useState<string | null>(null);
+
+  function handleSpeak() {
+    if (!text.trim()) return;
+    Speech.stop();
+    Speech.speak(text.trim(), { language: getLocaleForLanguage(targetLanguage.trim()), rate: 0.95, pitch: 1 });
+  }
+
+  async function handleFetchPhonetics() {
+    if (!text.trim()) {
+      setErrors((prev) => ({ ...prev, text: "Enter the phrase first" }));
+      return;
+    }
+    setFetchingPhonetics(true);
+    setPhoneticsError(null);
+    const result = await fetchWiktionaryPhonetics(text.trim(), targetLanguage.trim());
+    setFetchingPhonetics(false);
+    if (result) {
+      setPhonetics(result);
+      setErrors((prev) => ({ ...prev, phonetics: undefined }));
+    } else {
+      setPhoneticsError("No phonetics found. You can type it manually.");
+    }
+  }
 
   function validate(): boolean {
     const next: FormErrors = {};
@@ -77,14 +113,14 @@ export default function AddPhraseScreen() {
     return Object.keys(next).length === 0;
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!validate()) return;
 
     const tl = targetLanguage.trim().toLowerCase();
     const ul = userLanguage.trim().toLowerCase();
     const slug = text.trim().toLowerCase().replace(/\s+/g, "-");
 
-    addPhrase({
+    await addPhrase({
       id: `${tl}-${ul}-${slug}-${Date.now()}`,
       targetLanguage: tl,
       userLanguage: ul,
@@ -151,9 +187,38 @@ export default function AddPhraseScreen() {
         <Field
           label="Phonetics *"
           value={phonetics}
-          onChangeText={setPhonetics}
+          onChangeText={(v) => {
+            setPhonetics(v);
+            setPhoneticsError(null);
+          }}
           placeholder="e.g. huh-LOH"
-          error={errors.phonetics}
+          error={errors.phonetics ?? phoneticsError ?? undefined}
+          rightAction={
+            <View style={styles.fieldActions}>
+              <Pressable
+                onPress={handleSpeak}
+                disabled={!text.trim()}
+                style={[styles.actionButton, styles.speakButton, !text.trim() && styles.actionButtonDisabled]}
+                accessibilityRole="button"
+                accessibilityLabel="Speak phrase"
+              >
+                <Ionicons name="volume-high" size={20} color={palette.white} />
+              </Pressable>
+              <Pressable
+                onPress={handleFetchPhonetics}
+                disabled={fetchingPhonetics}
+                style={[styles.actionButton, styles.syncButton, fetchingPhonetics && styles.actionButtonDisabled]}
+                accessibilityRole="button"
+                accessibilityLabel="Fetch phonetics from Wiktionary"
+              >
+                {fetchingPhonetics ? (
+                  <ActivityIndicator size="small" color={palette.white} />
+                ) : (
+                  <Ionicons name="sync" size={20} color={palette.white} />
+                )}
+              </Pressable>
+            </View>
+          }
         />
         <Field
           label="Target language code *"
@@ -227,6 +292,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: palette.text,
   },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  inputFlex: {
+    flex: 1,
+  },
   input: {
     backgroundColor: palette.white,
     borderWidth: 2,
@@ -244,5 +317,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#EF4444",
     fontWeight: "600",
+  },
+  fieldActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  speakButton: {
+    backgroundColor: palette.green,
+  },
+  syncButton: {
+    backgroundColor: palette.blue,
+  },
+  actionButtonDisabled: {
+    opacity: 0.4,
   },
 });

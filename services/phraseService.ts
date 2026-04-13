@@ -19,11 +19,7 @@ export function getLocaleForLanguage(code: string): string {
   return LOCALE_MAP[code.toLowerCase()] ?? `${code.toLowerCase()}-${code.toUpperCase()}`;
 }
 
-export function addPhrase(phrase: PhraseItem): void {
-  PHRASES.push(phrase);
-}
-
-const PHRASES: PhraseItem[] = [
+export const SEED_PHRASES: PhraseItem[] = [
   {
     id: "en-es-hello",
     targetLanguage: "en",
@@ -205,19 +201,6 @@ const PHRASES: PhraseItem[] = [
     audio: { text: "Gracias", locale: "es-ES", rate: 0.95, pitch: 1 },
   },
 ];
-
-type GetPhrasesParams = {
-  targetLanguage: string;
-  userLanguage: string;
-};
-
-export function getPhrases(params: GetPhrasesParams): PhraseItem[] {
-  return PHRASES.filter(
-    (phrase) =>
-      phrase.targetLanguage === params.targetLanguage &&
-      phrase.userLanguage === params.userLanguage,
-  );
-}
 
 export function playPhraseAudio(item: PhraseItem): void {
   Speech.stop();
