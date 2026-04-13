@@ -1,5 +1,3 @@
-# AGENTS.md
-
 ## Purpose
 
 This file is the top-level operating guide for AI coding agents working in this repository.
