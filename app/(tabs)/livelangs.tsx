@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { palette } from "@/constants/theme";
 import { getLanguageSections } from "@/services/languageCatalogService";
+import { usePhraseStore } from "@/stores/phraseStore";
 import type { LanguageItem } from "@/types/language";
 
 const { yourLanguages, availableLanguages } = getLanguageSections();
@@ -62,10 +63,13 @@ function LanguageGrid({
 export default function LiveLangsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const setSelectedLanguage = usePhraseStore((s) => s.setSelectedLanguage);
   const topPadding = Math.max(insets.top, 12);
 
   const handleSelectLanguage = (language: LanguageItem) => {
-    router.navigate({ pathname: "/(tabs)", params: { lang: language.code.toLowerCase() } });
+    const code = language.code.toLowerCase();
+    setSelectedLanguage(code);
+    router.navigate({ pathname: "/(tabs)", params: { lang: code } });
   };
 
   return (
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "800",
     color: palette.text,
   },
@@ -150,13 +154,13 @@ const styles = StyleSheet.create({
   codeText: {
     color: palette.white,
     fontWeight: "800",
-    fontSize: 13,
+    fontSize: 10,
   },
   codeTextHighlighted: {
     color: palette.green,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "800",
     color: palette.text,
   },

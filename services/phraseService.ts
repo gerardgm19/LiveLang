@@ -8,7 +8,7 @@ const LOCALE_MAP: Record<string, string> = {
   fr: "fr-FR",
   de: "de-DE",
   it: "it-IT",
-  pt: "pt-PT",
+  pt: "pt-BR",
   ja: "ja-JP",
   ko: "ko-KR",
   zh: "zh-CN",
@@ -99,7 +99,7 @@ export const SEED_PHRASES: PhraseItem[] = [
     text: "Ola",
     translation: "Hola",
     phonetics: "OH-lah",
-    audio: { text: "Ola", locale: "pt-PT", rate: 0.95, pitch: 1 },
+    audio: { text: "Ola", locale: "pt-BR", rate: 0.95, pitch: 1 },
   },
   {
     id: "pt-es-obrigado",
@@ -108,7 +108,7 @@ export const SEED_PHRASES: PhraseItem[] = [
     text: "Obrigado",
     translation: "Gracias",
     phonetics: "oh-bree-GAH-doo",
-    audio: { text: "Obrigado", locale: "pt-PT", rate: 0.95, pitch: 1 },
+    audio: { text: "Obrigado", locale: "pt-BR", rate: 0.95, pitch: 1 },
   },
   {
     id: "ja-es-konnichiwa",

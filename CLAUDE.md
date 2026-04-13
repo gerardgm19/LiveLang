@@ -44,6 +44,8 @@ Current product behavior:
 - users can tap a language card to navigate to `Home`
 - `Home` shows phrase/expression cards for the selected target language
 - each phrase includes translation, phonetics, and target-language pronunciation audio
+- users can add new phrases via the FAB (`+`) button → `add-phrase` screen
+- users can delete a phrase via the trash button on each card (confirmation dialog before deletion)
 
 The current implementation is data-seeded (hardcoded services) and optimized for iterative feature development.
 
@@ -59,6 +61,7 @@ Use this as the source of truth for existing structure:
   - `app/(tabs)/index.tsx`: Home phrases screen
   - `app/(tabs)/livelangs.tsx`: language catalog selection screen
   - `app/(tabs)/profile.tsx`: profile/progress screen
+  - `app/add-phrase.tsx`: add new phrase form screen
 
 - UI layer:
   - `components/LanguageTitleCard.tsx`: Home hero/title card with paired language flags
@@ -67,19 +70,25 @@ Use this as the source of truth for existing structure:
 
 - Domain/services layer:
   - `services/languageCatalogService.ts`: language catalog + sections + language lookup
-  - `services/phraseService.ts`: phrase dataset + filtering + TTS playback helper
+  - `services/phraseService.ts`: phrase dataset (SEED_PHRASES) + filtering + TTS playback helper
+
+- State layer:
+  - `stores/phraseStore.ts`: Zustand store — holds phrase list + selected language, persists to AsyncStorage
+  - Operations: `hydrate`, `addPhrase`, `deletePhrase`, `getPhrases`, `setSelectedLanguage`
 
 - Shared types:
   - `types/language.ts`: language models
-  - `types/phrase.ts`: phrase and audio models
+  - `types/phrase.ts`: `PhraseItem` and `PhraseAudio` models
 
 - State/navigation contract:
   - selected language is passed via route params (`lang`) from `LiveLangs` to `Home`
-  - `Home` derives phrase list from services using `targetLanguage` + `userLanguage`
+  - `Home` filters phrases from the store by `targetLanguage` + `userLanguage`
+  - user language is currently hardcoded to `"es"` (Spanish)
 
 Architectural intent:
 - keep route files focused on screen composition
 - keep business/data logic in `services/`
+- keep global mutable state in `stores/`
 - keep reusable models in `types/`
 - keep visual primitives and tokens reusable across screens
 
@@ -148,6 +157,12 @@ Do not edit unless required:
 - CI/CD files
 - signing or credential-related files
 - unrelated build/release configuration
+
+---
+
+## Platform gotchas
+
+- **`Alert.alert` on web** — React Native Web falls back to `window.alert`, which ignores the `buttons` array and fires no callbacks. Always guard confirmation dialogs with `Platform.OS === "web"` and use `window.confirm` as the web path.
 
 ---
 

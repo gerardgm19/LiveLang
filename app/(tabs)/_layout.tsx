@@ -22,7 +22,7 @@ export default function TabsLayout() {
           backgroundColor: palette.white,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: "700",
         },
       }}

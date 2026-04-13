@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageTitleCard } from "@/components/LanguageTitleCard";
@@ -12,7 +12,24 @@ import { useShallow } from "zustand/react/shallow";
 import { usePhraseStore } from "@/stores/phraseStore";
 import type { PhraseItem } from "@/types/phrase";
 
-function PhraseRow({ item }: { item: PhraseItem }) {
+function PhraseRow({ item, onDelete }: { item: PhraseItem; onDelete: () => void }) {
+  function handleDelete() {
+    if (Platform.OS === "web") {
+      if (window.confirm(`Delete "${item.text}"?`)) {
+        onDelete();
+      }
+      return;
+    }
+    Alert.alert(
+      "Delete phrase",
+      `Are you sure you want to delete "${item.text}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: onDelete },
+      ],
+    );
+  }
+
   return (
     <View style={styles.row}>
       <View style={styles.rowContent}>
@@ -20,14 +37,24 @@ function PhraseRow({ item }: { item: PhraseItem }) {
         <Text style={styles.translation}>{item.translation}</Text>
         <Text style={styles.phonetics}>/{item.phonetics}/</Text>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Play pronunciation for ${item.text}`}
-        onPress={() => playPhraseAudio(item)}
-        style={styles.playButton}
-      >
-        <Ionicons name="volume-high" size={20} color={palette.white} />
-      </Pressable>
+      <View style={styles.rowActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Play pronunciation for ${item.text}`}
+          onPress={() => playPhraseAudio(item)}
+          style={styles.playButton}
+        >
+          <Ionicons name="volume-high" size={20} color={palette.white} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Delete phrase ${item.text}`}
+          onPress={handleDelete}
+          style={styles.deleteButton}
+        >
+          <Ionicons name="trash-outline" size={20} color={palette.white} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -36,10 +63,13 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ lang?: string }>();
+  const storedLanguage = usePhraseStore((s) => s.selectedLanguage);
   const topPadding = Math.max(insets.top, 14);
 
-  const selectedLanguageCode = (params.lang ?? "en").toLowerCase();
+  const selectedLanguageCode = (params.lang ?? storedLanguage).toLowerCase();
   const selectedLanguage = getLanguageByCode(selectedLanguageCode) ?? getLanguageByCode("en");
+
+  const deletePhrase = usePhraseStore((s) => s.deletePhrase);
 
   const phrases = usePhraseStore(
     useShallow((s) =>
@@ -63,7 +93,7 @@ export default function HomeScreen() {
       <FlatList
         data={phrases}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PhraseRow item={item} />}
+        renderItem={({ item }) => <PhraseRow item={item} onDelete={() => deletePhrase(item.id)} />}
         ListEmptyComponent={<Text style={styles.empty}>No phrases found for this language yet.</Text>}
         contentContainerStyle={styles.listContent}
       />
@@ -87,7 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.backgroundTop,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "800",
     color: palette.text,
     marginBottom: 10,
@@ -112,19 +142,23 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   word: {
-    fontSize: 20,
+    fontSize: 13,
     fontWeight: "800",
     color: palette.text,
   },
   translation: {
-    fontSize: 16,
+    fontSize: 13,
     color: palette.green,
     fontWeight: "700",
   },
   phonetics: {
-    fontSize: 14,
+    fontSize: 11,
     color: palette.textSoft,
     fontWeight: "600",
+  },
+  rowActions: {
+    flexDirection: "row",
+    gap: 8,
   },
   playButton: {
     backgroundColor: palette.green,
@@ -132,8 +166,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
   },
+  deleteButton: {
+    backgroundColor: "#e53e3e",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
   empty: {
-    fontSize: 16,
+    fontSize: 13,
     color: palette.textSoft,
     marginTop: 20,
   },

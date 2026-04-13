@@ -64,12 +64,12 @@ const styles = StyleSheet.create({
     borderColor: palette.border,
   },
   name: {
-    fontSize: 24,
+    fontSize: 19,
     fontWeight: "800",
     color: palette.text,
   },
   level: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: "700",
     color: palette.textSoft,
   },
@@ -85,12 +85,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statValue: {
-    fontSize: 26,
+    fontSize: 21,
     fontWeight: "900",
     color: palette.white,
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "700",
     color: palette.white,
   },
@@ -101,12 +101,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tipTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "800",
     color: palette.text,
   },
   tipText: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: "600",
     color: palette.text,
   },

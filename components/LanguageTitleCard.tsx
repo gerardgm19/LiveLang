@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { StyleSheet, Text, View } from "react-native";
 
 import { palette } from "@/constants/theme";
 
@@ -20,10 +21,10 @@ export function LanguageTitleCard({
       <View style={styles.flagCircleWrap}>
         <View style={styles.flagCircle}>
           <View style={styles.flagHalf}>
-            <Image source={{ uri: leftFlagUri }} style={styles.flagImage} resizeMode="cover" />
+            <Image source={{ uri: leftFlagUri }} style={styles.flagImage} contentFit="cover" />
           </View>
           <View style={[styles.flagHalf, styles.flagHalfRight]}>
-            <Image source={{ uri: rightFlagUri }} style={styles.flagImage} resizeMode="cover" />
+            <Image source={{ uri: rightFlagUri }} style={styles.flagImage} contentFit="cover" />
           </View>
         </View>
       </View>
@@ -48,8 +49,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   flagCircleWrap: {
-    width: 86,
-    height: 86,
+    width: 96,
+    height: 76,
     borderRadius: 43,
     borderWidth: 3,
     borderColor: palette.white,
@@ -77,13 +78,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    fontSize: 40,
+    fontSize: 32,
     lineHeight: 42,
     fontWeight: "800",
     color: palette.white,
   },
   subtitle: {
-    fontSize: 28,
+    fontSize: 22,
     lineHeight: 30,
     color: palette.white,
     fontWeight: "700",

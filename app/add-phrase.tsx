@@ -135,7 +135,7 @@ export default function AddPhraseScreen() {
       },
     });
 
-    router.back();
+    router.replace("/(tabs)");
   }
 
   return (
@@ -145,7 +145,7 @@ export default function AddPhraseScreen() {
     >
       <View style={[styles.topBar, { paddingTop: insets.top }]}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(tabs)")}
           style={styles.topBarAction}
           accessibilityRole="button"
           accessibilityLabel="Cancel"
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     borderBottomColor: palette.border,
   },
   topBarTitle: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: "700",
     color: palette.text,
   },
@@ -268,12 +268,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   cancelText: {
-    fontSize: 16,
+    fontSize: 13,
     color: palette.textSoft,
     fontWeight: "600",
   },
   saveText: {
-    fontSize: 16,
+    fontSize: 13,
     color: palette.green,
     fontWeight: "700",
   },
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "700",
     color: palette.text,
   },
@@ -307,14 +307,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: 13,
     color: palette.text,
   },
   inputError: {
     borderColor: "#EF4444",
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 10,
     color: "#EF4444",
     fontWeight: "600",
   },
