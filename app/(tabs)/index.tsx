@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -31,12 +32,22 @@ function PhraseRow({ item }: { item: PhraseItem }) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const params = useLocalSearchParams<{ lang?: string }>();
   const topPadding = Math.max(insets.top, 14);
 
   const selectedLanguageCode = (params.lang ?? "en").toLowerCase();
   const selectedLanguage = getLanguageByCode(selectedLanguageCode) ?? getLanguageByCode("en");
-  const phrases = getPhrases({ targetLanguage: selectedLanguageCode, userLanguage: "es" });
+
+  const [phrases, setPhrases] = useState<PhraseItem[]>(() =>
+    getPhrases({ targetLanguage: selectedLanguageCode, userLanguage: "es" }),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setPhrases(getPhrases({ targetLanguage: selectedLanguageCode, userLanguage: "es" }));
+    }, [selectedLanguageCode]),
+  );
 
   return (
     <View style={[styles.container, { paddingTop: topPadding }]}>
@@ -56,6 +67,15 @@ export default function HomeScreen() {
         ListEmptyComponent={<Text style={styles.empty}>No phrases found for this language yet.</Text>}
         contentContainerStyle={styles.listContent}
       />
+
+      <Pressable
+        style={[styles.fab, { bottom: insets.bottom + 20 }]}
+        onPress={() => router.push({ pathname: "/add-phrase", params: { lang: selectedLanguageCode } })}
+        accessibilityRole="button"
+        accessibilityLabel="Add new phrase"
+      >
+        <Ionicons name="add" size={28} color={palette.white} />
+      </Pressable>
     </View>
   );
 }
@@ -116,5 +136,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: palette.textSoft,
     marginTop: 20,
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: palette.green,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
   },
 });

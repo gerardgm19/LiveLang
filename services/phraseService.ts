@@ -2,6 +2,27 @@ import * as Speech from "expo-speech";
 
 import type { PhraseItem } from "@/types/phrase";
 
+const LOCALE_MAP: Record<string, string> = {
+  en: "en-US",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  it: "it-IT",
+  pt: "pt-PT",
+  ja: "ja-JP",
+  ko: "ko-KR",
+  zh: "zh-CN",
+  ar: "ar-SA",
+};
+
+export function getLocaleForLanguage(code: string): string {
+  return LOCALE_MAP[code.toLowerCase()] ?? `${code.toLowerCase()}-${code.toUpperCase()}`;
+}
+
+export function addPhrase(phrase: PhraseItem): void {
+  PHRASES.push(phrase);
+}
+
 const PHRASES: PhraseItem[] = [
   {
     id: "en-es-hello",

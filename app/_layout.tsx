@@ -6,6 +6,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="add-phrase" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );
