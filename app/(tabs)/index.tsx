@@ -1,7 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState } from "react";
+import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageTitleCard } from "@/components/LanguageTitleCard";
 import { palette } from "@/constants/theme";
@@ -60,14 +61,15 @@ function PhraseRow({ item, onDelete }: { item: PhraseItem; onDelete: () => void 
 }
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ lang?: string }>();
   const storedLanguage = usePhraseStore((s) => s.selectedLanguage);
-  const topPadding = Math.max(insets.top, 14);
 
   const selectedLanguageCode = (params.lang ?? storedLanguage).toLowerCase();
   const selectedLanguage = getLanguageByCode(selectedLanguageCode) ?? getLanguageByCode("en");
+
+  const [filterText, setFilterText] = useState("");
 
   const deletePhrase = usePhraseStore((s) => s.deletePhrase);
 
@@ -79,8 +81,17 @@ export default function HomeScreen() {
     ),
   );
 
+  const query = filterText.trim().toLowerCase();
+  const filteredPhrases = query
+    ? phrases.filter(
+      (p) =>
+        p.text.toLowerCase().includes(query) ||
+        p.translation.toLowerCase().includes(query),
+    )
+    : phrases;
+
   return (
-    <View style={[styles.container, { paddingTop: topPadding }]}>
+    <SafeAreaView edges={["top"]} style={styles.container}>
       <LanguageTitleCard
         title="LiveLang"
         subtitle={`${selectedLanguage?.name ?? "English"} to Spanish`}
@@ -90,8 +101,18 @@ export default function HomeScreen() {
 
       <Text style={styles.sectionTitle}>Your expressions</Text>
 
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Filter by phrase or translation..."
+        placeholderTextColor={palette.textSoft}
+        value={filterText}
+        onChangeText={setFilterText}
+        clearButtonMode="while-editing"
+        autoCorrect={false}
+      />
+
       <FlatList
-        data={phrases}
+        data={filteredPhrases}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PhraseRow item={item} onDelete={() => deletePhrase(item.id)} />}
         ListEmptyComponent={<Text style={styles.empty}>No phrases found for this language yet.</Text>}
@@ -99,14 +120,14 @@ export default function HomeScreen() {
       />
 
       <Pressable
-        style={[styles.fab, { bottom: insets.bottom + 20 }]}
+        style={[styles.fab, { bottom: bottom + 20 }]}
         onPress={() => router.push({ pathname: "/add-phrase", params: { lang: selectedLanguageCode } })}
         accessibilityRole="button"
         accessibilityLabel="Add new phrase"
       >
         <Ionicons name="add" size={28} color={palette.white} />
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -121,6 +142,17 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: palette.text,
     marginBottom: 10,
+  },
+  searchInput: {
+    borderWidth: 2,
+    borderColor: palette.border,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: palette.text,
+    backgroundColor: palette.white,
+    marginBottom: 12,
   },
   listContent: {
     gap: 12,

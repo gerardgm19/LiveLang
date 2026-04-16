@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { palette } from "@/constants/theme";
 import { getLanguageSections } from "@/services/languageCatalogService";
@@ -61,10 +61,8 @@ function LanguageGrid({
 }
 
 export default function LiveLangsScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const setSelectedLanguage = usePhraseStore((s) => s.setSelectedLanguage);
-  const topPadding = Math.max(insets.top, 12);
 
   const handleSelectLanguage = (language: LanguageItem) => {
     const code = language.code.toLowerCase();
@@ -73,29 +71,35 @@ export default function LiveLangsScreen() {
   };
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingTop: topPadding }]}
-    >
-      <LanguageGrid
-        title="Your Languages"
-        languages={yourLanguages}
-        highlighted
-        onSelect={handleSelectLanguage}
-      />
-      <LanguageGrid
-        title="Available languages"
-        languages={availableLanguages}
-        onSelect={handleSelectLanguage}
-      />
-    </ScrollView>
+    <SafeAreaView edges={["top"]} style={styles.screen}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
+        <LanguageGrid
+          title="Your Languages"
+          languages={yourLanguages}
+          highlighted
+          onSelect={handleSelectLanguage}
+        />
+        <LanguageGrid
+          title="Available languages"
+          languages={availableLanguages}
+          onSelect={handleSelectLanguage}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
+    marginTop: 16,
     flex: 1,
     backgroundColor: palette.backgroundBottom,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 16,

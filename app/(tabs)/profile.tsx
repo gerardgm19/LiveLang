@@ -1,18 +1,16 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FriendlyMascot } from "@/components/FriendlyMascot";
 import { palette } from "@/constants/theme";
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets();
-  const topPadding = Math.max(insets.top, 12);
-
   return (
+    <SafeAreaView edges={["top"]} style={styles.screen}>
     <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingTop: topPadding }]}
+      style={styles.scrollView}
+      contentContainerStyle={styles.content}
     >
       <View style={styles.headerCard}>
         <FriendlyMascot size={78} />
@@ -40,6 +38,7 @@ export default function ProfileScreen() {
         <Text style={styles.tipText}>Repeat each phrase out loud 3 times to improve confidence.</Text>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -47,6 +46,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: palette.backgroundTop,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 16,
