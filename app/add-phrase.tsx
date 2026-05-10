@@ -24,8 +24,6 @@ type FormErrors = {
   text?: string;
   translation?: string;
   phonetics?: string;
-  targetLanguage?: string;
-  userLanguage?: string;
 };
 
 function Field({
@@ -70,11 +68,12 @@ export default function AddPhraseScreen() {
   const params = useLocalSearchParams<{ lang?: string }>();
   const addPhrase = usePhraseStore((s) => s.addPhrase);
 
+  const targetLanguage = (params.lang ?? "en").toLowerCase();
+  const userLanguage = "es";
+
   const [text, setText] = useState("");
   const [translation, setTranslation] = useState("");
   const [phonetics, setPhonetics] = useState("");
-  const [targetLanguage, setTargetLanguage] = useState(params.lang ?? "en");
-  const [userLanguage, setUserLanguage] = useState("es");
   const [errors, setErrors] = useState<FormErrors>({});
   const [fetchingPhonetics, setFetchingPhonetics] = useState(false);
   const [phoneticsError, setPhoneticsError] = useState<string | null>(null);
@@ -82,7 +81,7 @@ export default function AddPhraseScreen() {
   function handleSpeak() {
     if (!text.trim()) return;
     Speech.stop();
-    Speech.speak(text.trim(), { language: getLocaleForLanguage(targetLanguage.trim()), rate: 0.95, pitch: 1 });
+    Speech.speak(text.trim(), { language: getLocaleForLanguage(targetLanguage), rate: 0.95, pitch: 1 });
   }
 
   async function handleFetchPhonetics() {
@@ -92,7 +91,7 @@ export default function AddPhraseScreen() {
     }
     setFetchingPhonetics(true);
     setPhoneticsError(null);
-    const result = await fetchWiktionaryPhonetics(text.trim(), targetLanguage.trim());
+    const result = await fetchWiktionaryPhonetics(text.trim(), targetLanguage);
     setFetchingPhonetics(false);
     if (result) {
       setPhonetics(result);
@@ -107,8 +106,6 @@ export default function AddPhraseScreen() {
     if (!text.trim()) next.text = "Phrase is required";
     if (!translation.trim()) next.translation = "Translation is required";
     if (!phonetics.trim()) next.phonetics = "Phonetics is required";
-    if (!targetLanguage.trim()) next.targetLanguage = "Target language code is required";
-    if (!userLanguage.trim()) next.userLanguage = "Your language code is required";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -116,8 +113,8 @@ export default function AddPhraseScreen() {
   async function handleSave() {
     if (!validate()) return;
 
-    const tl = targetLanguage.trim().toLowerCase();
-    const ul = userLanguage.trim().toLowerCase();
+    const tl = targetLanguage;
+    const ul = userLanguage;
     const slug = text.trim().toLowerCase().replace(/\s+/g, "-");
 
     await addPhrase({
@@ -219,22 +216,6 @@ export default function AddPhraseScreen() {
               </Pressable>
             </View>
           }
-        />
-        <Field
-          label="Target language code *"
-          value={targetLanguage}
-          onChangeText={setTargetLanguage}
-          placeholder="e.g. en"
-          error={errors.targetLanguage}
-          autoCapitalize="none"
-        />
-        <Field
-          label="Your language code *"
-          value={userLanguage}
-          onChangeText={setUserLanguage}
-          placeholder="e.g. es"
-          error={errors.userLanguage}
-          autoCapitalize="none"
         />
       </ScrollView>
     </KeyboardAvoidingView>
