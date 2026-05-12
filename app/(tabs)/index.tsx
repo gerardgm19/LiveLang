@@ -6,11 +6,12 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { LanguageTitleCard } from "@/components/LanguageTitleCard";
 import { palette } from "@/constants/theme";
-import { getLanguageByCode } from "@/services/languageCatalogService";
+import { getLocaleByCode } from "@/services/localeCatalog";
 import { playPhraseAudio } from "@/services/phraseService";
 import { useShallow } from "zustand/react/shallow";
 
 import { usePhraseStore } from "@/stores/phraseStore";
+import { useUserLanguagesStore } from "@/stores/userLanguagesStore";
 import type { PhraseItem } from "@/types/phrase";
 
 function PhraseRow({ item, onDelete }: { item: PhraseItem; onDelete: () => void }) {
@@ -67,7 +68,9 @@ export default function HomeScreen() {
   const storedLanguage = usePhraseStore((s) => s.selectedLanguage);
 
   const selectedLanguageCode = (params.lang ?? storedLanguage).toLowerCase();
-  const selectedLanguage = getLanguageByCode(selectedLanguageCode) ?? getLanguageByCode("en");
+  const userLanguageCode = useUserLanguagesStore((s) => s.userLanguage);
+  const selectedLocale = getLocaleByCode(selectedLanguageCode);
+  const userLocale = getLocaleByCode(userLanguageCode);
 
   const [filterText, setFilterText] = useState("");
 
@@ -76,7 +79,7 @@ export default function HomeScreen() {
   const phrases = usePhraseStore(
     useShallow((s) =>
       s.phrases.filter(
-        (p) => p.targetLanguage === selectedLanguageCode && p.userLanguage === "es",
+        (p) => p.targetLanguage === selectedLanguageCode && p.userLanguage === userLanguageCode,
       ),
     ),
   );
@@ -94,9 +97,9 @@ export default function HomeScreen() {
     <SafeAreaView edges={["top"]} style={styles.container}>
       <LanguageTitleCard
         title="LiveLang"
-        subtitle={`${selectedLanguage?.name ?? "English"} to Spanish`}
-        leftFlagUri={selectedLanguage?.flagUri ?? "https://flagcdn.com/w160/gb.png"}
-        rightFlagUri="https://flagcdn.com/w160/es.png"
+        subtitle={`${selectedLocale?.language ?? "English"} to ${userLocale?.language ?? "Spanish"}`}
+        leftFlagUri={selectedLocale?.flagUri ?? "https://flagcdn.com/w160/us.png"}
+        rightFlagUri={userLocale?.flagUri ?? "https://flagcdn.com/w160/es.png"}
       />
 
       <Text style={styles.sectionTitle}>Your expressions</Text>

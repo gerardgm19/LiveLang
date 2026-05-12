@@ -19,6 +19,7 @@ import { palette } from "@/constants/theme";
 import { getLocaleForLanguage } from "@/services/phraseService";
 import { fetchWiktionaryPhonetics } from "@/services/wiktionaryService";
 import { usePhraseStore } from "@/stores/phraseStore";
+import { useUserLanguagesStore } from "@/stores/userLanguagesStore";
 
 type FormErrors = {
   text?: string;
@@ -69,7 +70,7 @@ export default function AddPhraseScreen() {
   const addPhrase = usePhraseStore((s) => s.addPhrase);
 
   const targetLanguage = (params.lang ?? "en").toLowerCase();
-  const userLanguage = "es";
+  const userLanguage = useUserLanguagesStore((s) => s.userLanguage);
 
   const [text, setText] = useState("");
   const [translation, setTranslation] = useState("");

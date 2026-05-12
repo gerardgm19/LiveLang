@@ -1,12 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
+import { migrateLanguageCode } from "@/services/languageMigration";
 import { SEED_PHRASES } from "@/services/phraseService";
 import type { PhraseItem } from "@/types/phrase";
 
 const STORAGE_KEY = "livelang_phrases";
 const LANGUAGE_KEY = "livelang_selected_language";
-const DEFAULT_LANGUAGE = "en";
+const DEFAULT_LANGUAGE = "en-us";
 
 type PhraseStore = {
   phrases: PhraseItem[];
@@ -31,18 +32,35 @@ export const usePhraseStore = create<PhraseStore>((set, get) => ({
         LANGUAGE_KEY,
       ]);
 
-      const phrases =
+      const rawPhrases =
         storedPhrases[1] !== null
           ? (JSON.parse(storedPhrases[1]) as PhraseItem[])
           : SEED_PHRASES;
 
-      if (storedPhrases[1] === null) {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_PHRASES));
+      let mutated = storedPhrases[1] === null;
+      const phrases = rawPhrases.map((p) => {
+        const tl = migrateLanguageCode(p.targetLanguage);
+        const ul = migrateLanguageCode(p.userLanguage);
+        if (tl !== p.targetLanguage || ul !== p.userLanguage) {
+          mutated = true;
+          return { ...p, targetLanguage: tl, userLanguage: ul };
+        }
+        return p;
+      });
+
+      if (mutated) {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(phrases));
+      }
+
+      const rawLang = storedLang[1] ?? DEFAULT_LANGUAGE;
+      const selectedLanguage = migrateLanguageCode(rawLang);
+      if (selectedLanguage !== rawLang || storedLang[1] === null) {
+        await AsyncStorage.setItem(LANGUAGE_KEY, selectedLanguage);
       }
 
       set({
         phrases,
-        selectedLanguage: storedLang[1] ?? DEFAULT_LANGUAGE,
+        selectedLanguage,
         hydrated: true,
       });
     } catch {
