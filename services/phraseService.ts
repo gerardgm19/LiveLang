@@ -202,11 +202,26 @@ export const SEED_PHRASES: PhraseItem[] = [
   },
 ];
 
-export function playPhraseAudio(item: PhraseItem): void {
+type PlayCallbacks = {
+  onStart?: () => void;
+  onDone?: () => void;
+  onStopped?: () => void;
+  onError?: () => void;
+};
+
+export function playPhraseAudio(item: PhraseItem, callbacks?: PlayCallbacks): void {
   Speech.stop();
   Speech.speak(item.audio.text, {
     language: item.audio.locale,
     rate: item.audio.rate,
     pitch: item.audio.pitch,
+    onStart: callbacks?.onStart,
+    onDone: callbacks?.onDone,
+    onStopped: callbacks?.onStopped,
+    onError: callbacks?.onError,
   });
+}
+
+export function stopPhraseAudio(): void {
+  Speech.stop();
 }

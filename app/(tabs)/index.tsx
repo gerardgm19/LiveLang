@@ -7,14 +7,24 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { LanguageTitleCard } from "@/components/LanguageTitleCard";
 import { palette } from "@/constants/theme";
 import { getLocaleByCode } from "@/services/localeCatalog";
-import { playPhraseAudio } from "@/services/phraseService";
+import { playPhraseAudio, stopPhraseAudio } from "@/services/phraseService";
 import { useShallow } from "zustand/react/shallow";
 
 import { usePhraseStore } from "@/stores/phraseStore";
 import { useUserLanguagesStore } from "@/stores/userLanguagesStore";
 import type { PhraseItem } from "@/types/phrase";
 
-function PhraseRow({ item, onDelete }: { item: PhraseItem; onDelete: () => void }) {
+function PhraseRow({
+  item,
+  isSpeaking,
+  onPlay,
+  onDelete,
+}: {
+  item: PhraseItem;
+  isSpeaking: boolean;
+  onPlay: () => void;
+  onDelete: () => void;
+}) {
   function handleDelete() {
     if (Platform.OS === "web") {
       if (window.confirm(`Delete "${item.text}"?`)) {
@@ -42,11 +52,17 @@ function PhraseRow({ item, onDelete }: { item: PhraseItem; onDelete: () => void 
       <View style={styles.rowActions}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Play pronunciation for ${item.text}`}
-          onPress={() => playPhraseAudio(item)}
-          style={styles.playButton}
+          accessibilityLabel={
+            isSpeaking ? `Stop pronunciation for ${item.text}` : `Play pronunciation for ${item.text}`
+          }
+          onPress={onPlay}
+          style={[styles.playButton, isSpeaking ? styles.playButtonActive : null]}
         >
-          <Ionicons name="volume-high" size={20} color={palette.white} />
+          <Ionicons
+            name={isSpeaking ? "stop" : "volume-high"}
+            size={20}
+            color={palette.white}
+          />
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -73,8 +89,23 @@ export default function HomeScreen() {
   const userLocale = getLocaleByCode(userLanguageCode);
 
   const [filterText, setFilterText] = useState("");
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   const deletePhrase = usePhraseStore((s) => s.deletePhrase);
+
+  function handlePlay(item: PhraseItem) {
+    if (speakingId === item.id) {
+      stopPhraseAudio();
+      setSpeakingId(null);
+      return;
+    }
+    setSpeakingId(item.id);
+    playPhraseAudio(item, {
+      onDone: () => setSpeakingId((id) => (id === item.id ? null : id)),
+      onStopped: () => setSpeakingId((id) => (id === item.id ? null : id)),
+      onError: () => setSpeakingId((id) => (id === item.id ? null : id)),
+    });
+  }
 
   const phrases = usePhraseStore(
     useShallow((s) =>
@@ -117,7 +148,14 @@ export default function HomeScreen() {
       <FlatList
         data={filteredPhrases}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PhraseRow item={item} onDelete={() => deletePhrase(item.id)} />}
+        renderItem={({ item }) => (
+          <PhraseRow
+            item={item}
+            isSpeaking={speakingId === item.id}
+            onPlay={() => handlePlay(item)}
+            onDelete={() => deletePhrase(item.id)}
+          />
+        )}
         ListEmptyComponent={<Text style={styles.empty}>No phrases found for this language yet.</Text>}
         contentContainerStyle={styles.listContent}
       />
@@ -200,6 +238,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
+  },
+  playButtonActive: {
+    backgroundColor: palette.blue,
   },
   deleteButton: {
     backgroundColor: "#e53e3e",
